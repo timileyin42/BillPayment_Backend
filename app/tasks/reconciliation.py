@@ -227,7 +227,6 @@ def reconcile_wallet_balances() -> Dict[str, Any]:
     logger.info("Starting wallet balance reconciliation")
     
     # Use sync-to-async pattern for Celery compatibility
-    import asyncio
     return asyncio.run(_reconcile_wallet_balances_async())
 
 
@@ -385,7 +384,6 @@ def cleanup_expired_idempotency_keys() -> Dict[str, Any]:
     logger.info("Starting cleanup of expired idempotency keys")
     
     # Use sync-to-async pattern for Celery compatibility
-    import asyncio
     return asyncio.run(_cleanup_expired_idempotency_keys_async())
 
 
@@ -415,7 +413,6 @@ def process_pending_cashbacks() -> Dict[str, Any]:
     logger.info("Starting processing of pending cashbacks")
     
     # Use sync-to-async pattern for Celery compatibility
-    import asyncio
     return asyncio.run(_process_pending_cashbacks_async())
 
 

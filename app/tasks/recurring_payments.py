@@ -521,7 +521,6 @@ def cancel_recurring_payment(recurring_payment_id: int, reason: str) -> Dict[str
     logger.info(f"Cancelling recurring payment {recurring_payment_id}")
     
     # Use sync-to-async pattern for Celery compatibility
-    import asyncio
     return asyncio.run(_cancel_recurring_payment_async(recurring_payment_id, reason))
 
 
