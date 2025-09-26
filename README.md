@@ -2,7 +2,6 @@
 
 A comprehensive fintech backend system for bill payments, wallet management, and cashback rewards built with FastAPI and modern Python technologies.
 
-![Vision Fintech Architecture](https://trae-api-sg.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20fintech%20backend%20architecture%20diagram%20showing%20API%20layers%2C%20microservices%2C%20database%20connections%2C%20and%20external%20integrations%20in%20a%20clean%20professional%20style%20with%20blue%20and%20green%20color%20scheme&image_size=landscape_16_9)
 
 ## 🚀 Features
 
@@ -110,9 +109,6 @@ graph TB
     style Billers fill:#fff3e0
 ```
 
-## 💳 Bill Payment Workflow
-
-![Bill Payment Process](https://trae-api-sg.mchost.guru/api/ide/v1/text_to_image?prompt=fintech%20bill%20payment%20workflow%20diagram%20showing%20user%20authentication%2C%20biller%20selection%2C%20payment%20processing%2C%20and%20cashback%20rewards%20in%20a%20modern%20flowchart%20style&image_size=landscape_4_3)
 
 ```mermaid
 sequenceDiagram
@@ -151,9 +147,6 @@ sequenceDiagram
     API-->>User: Success + Cashback Info
 ```
 
-## 🗄️ Database Schema
-
-![Database Schema](https://trae-api-sg.mchost.guru/api/ide/v1/text_to_image?prompt=database%20entity%20relationship%20diagram%20for%20fintech%20application%20showing%20users%2C%20wallets%2C%20transactions%2C%20billers%2C%20and%20cashback%20tables%20with%20relationships%20in%20a%20clean%20technical%20style&image_size=landscape_4_3)
 
 ### Core Entities
 - **Users**: Account management and authentication
