@@ -1,15 +1,29 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
+# from starlette.middleware.trustedhosts import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordBearer, HTTPBearer, APIKeyHeader
+from fastapi.openapi.utils import get_openapi
 from contextlib import asynccontextmanager
-import logging
 import time
-
-from .core.config import settings
-from .core.database import engine
-from .core.errors import VisionException
-from .api import auth, wallet, payments, billers, cashback, admin
+import logging
+import uvicorn
+from app.core.config import settings
+from app.core.exceptions import VisionException
+from app.core.database import engine
+from app.core.database import init_db, get_redis
+from app.api.v1 import auth, users, bills, payments, wallet, admin, webhooks
+from app.middleware import (
+    SecurityHeadersMiddleware,
+    RateLimitingMiddleware,
+    CSRFProtectionMiddleware,
+    AuditLoggingMiddleware,
+    RequestSizeLimitMiddleware,
+    IPFilteringMiddleware,
+    InputValidationMiddleware,
+    SessionManagementMiddleware,
+    SessionManager
+)
 
 # Configure logging
 logging.basicConfig(
@@ -55,37 +69,194 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Vision Fintech Backend...")
     await engine.dispose()
 
-# Create FastAPI application
+# Create FastAPI application with OAuth2 configuration
 app = FastAPI(
     title="Vision Fintech Backend",
-    description="Backend API for Vision Fintech bill payment application",
+    description="Backend API for Vision Fintech bill payment application with OAuth2 authentication",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan
+    lifespan=lifespan,
+    swagger_ui_oauth2_redirect_url="/docs/oauth2-redirect",
+    swagger_ui_init_oauth={
+        "clientId": "swagger-ui",
+        "realm": "swagger-ui-realm",
+        "appName": "Vision Fintech API",
+        "scopeSeparator": " ",
+        "additionalQueryStringParams": {},
+        "useBasicAuthenticationWithAccessCodeGrant": False,
+        "usePkceWithAuthorizationCodeGrant": True,
+    }
 )
 
-# Add CORS middleware
+# Define security schemes
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/api/v1/auth/token",
+    scheme_name="OAuth2PasswordBearer"
+)
+
+api_key_header = APIKeyHeader(
+    name="x-api-key",
+    scheme_name="ApiKeyAuth"
+)
+
+bearer_scheme = HTTPBearer(
+    scheme_name="BearerAuth"
+)
+
+# Custom OpenAPI schema with security definitions
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    
+    openapi_schema = get_openapi(
+        title="Vision Fintech Backend",
+        version="1.0.0",
+        description="Backend API for Vision Fintech bill payment application with OAuth2 authentication",
+        routes=app.routes,
+    )
+    
+    # Add security schemes to OpenAPI schema
+    openapi_schema["components"]["securitySchemes"] = {
+        "OAuth2PasswordBearer": {
+            "type": "oauth2",
+            "flows": {
+                "password": {
+                    "tokenUrl": "/api/v1/auth/token",
+                    "scopes": {
+                        "read": "Read access",
+                        "write": "Write access"
+                    }
+                }
+            }
+        },
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "x-api-key"
+        },
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        }
+    }
+    
+    # Add global security requirement
+    openapi_schema["security"] = [
+        {"OAuth2PasswordBearer": []},
+        {"ApiKeyAuth": []},
+        {"BearerAuth": []}
+    ]
+    
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
+
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=settings.ALLOWED_HOSTS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Add trusted host middleware for production
-if settings.environment == "production":
+# Add trusted host middleware
+# app.add_middleware(
+#     TrustedHostMiddleware,
+#     allowed_hosts=settings.ALLOWED_HOSTS
+# )
+
+# Initialize Redis connection for middleware
+try:
+    redis_client = None
+    
+    # Add security middleware in correct order
+    # 1. Security Headers (first)
+    app.add_middleware(SecurityHeadersMiddleware)
+    
+    # 2. Rate Limiting
     app.add_middleware(
-        TrustedHostMiddleware,
-        allowed_hosts=settings.allowed_hosts
+        RateLimitingMiddleware,
+        redis_client=redis_client,
+        default_requests_per_minute=100,
+        default_requests_per_hour=1000
     )
+    
+    # 3. CSRF Protection
+    app.add_middleware(
+        CSRFProtectionMiddleware,
+        redis_client=redis_client,
+        secret_key=settings.SECRET_KEY
+    )
+    
+    # 4. Audit Logging
+    app.add_middleware(
+        AuditLoggingMiddleware,
+        redis_client=redis_client
+    )
+    
+    # 5. Request Size Limiting
+    app.add_middleware(
+        RequestSizeLimitMiddleware,
+        max_size=10 * 1024 * 1024  # 10MB default
+    )
+    
+    # 6. IP Filtering
+    app.add_middleware(
+        IPFilteringMiddleware,
+        redis_client=redis_client,
+        enable_dynamic_blocking=True,
+        max_requests_per_minute=200
+    )
+    
+    # 7. Input Validation
+    app.add_middleware(
+        InputValidationMiddleware,
+        enable_xss_protection=True,
+        enable_sql_injection_protection=True,
+        max_string_length=10000
+    )
+    
+    # 8. Session Management (last)
+    session_manager = SessionManager(
+        redis_client=redis_client,
+        session_timeout=3600,
+        max_concurrent_sessions=5
+    )
+    app.add_middleware(
+        SessionManagementMiddleware,
+        session_manager=session_manager,
+        jwt_secret_key=settings.SECRET_KEY
+    )
+    
+    logger.info("Security middleware initialized successfully")
+    
+except Exception as e:
+    logger.error(f"Error initializing security middleware: {e}")
+    # Continue without middleware in development, fail in production
+    if hasattr(settings, 'ENVIRONMENT') and settings.ENVIRONMENT == 'production':
+        raise
 
 # Request timing middleware
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     """Add processing time to response headers."""
     start_time = time.time()
+    
+    # Initialize Redis client if not already done
+    if not hasattr(app.state, 'redis_client') or app.state.redis_client is None:
+        try:
+            app.state.redis_client = await get_redis()
+            # Update middleware with Redis client
+            for middleware in app.user_middleware:
+                if hasattr(middleware.cls, 'redis_client'):
+                    middleware.cls.redis_client = app.state.redis_client
+        except Exception as e:
+            logger.warning(f"Could not initialize Redis client: {e}")
+    
     response = await call_next(request)
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)

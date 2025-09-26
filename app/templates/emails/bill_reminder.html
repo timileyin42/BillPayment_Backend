@@ -1,0 +1,1050 @@
+{% extends "base.html" %}
+
+{% block title %}Bill Payment Reminder - Vision Fintech{% endblock %}
+
+{% block content %}
+<div class="greeting">
+    <h2> Payment Reminder</h2>
+    <p>Hello {{ user_name }},</p>
+</div>
+
+<div class="main-content">
+    <div class="info-box reminder">
+        <div class="icon"></div>
+        <div class="content">
+            <h3>{{ reminder_type or "Bill Payment Due Soon" }}</h3>
+            <p>This is a friendly reminder that you have {{ bill_count or "a" }} bill{% if bill_count > 1 %}s{% endif %} due soon. Don't miss your payment{% if bill_count > 1 %}s{% endif %} to avoid late fees and service interruptions.</p>
+        </div>
+    </div>
+
+    {% if bills %}
+    <div class="bills-section">
+        <h3> Bills Due</h3>
+        {% for bill in bills %}
+        <div class="bill-card {% if bill.is_overdue %}overdue{% elif bill.days_until_due <= 1 %}urgent{% elif bill.days_until_due <= 3 %}warning{% else %}normal{% endif %}">
+            <div class="bill-header">
+                <div class="provider-section">
+                    <div class="provider-logo">{{ bill.provider_icon }}</div>
+                    <div class="provider-details">
+                        <h4>{{ bill.provider_name }}</h4>
+                        <p>{{ bill.service_type }}</p>
+                        {% if bill.account_number %}
+                        <p class="account-number">Account: {{ bill.account_number }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="bill-status">
+                    {% if bill.is_overdue %}
+                    <div class="status-badge overdue">
+                        <span class="status-icon"></span>
+                        <span class="status-text">OVERDUE</span>
+                    </div>
+                    {% elif bill.days_until_due <= 1 %}
+                    <div class="status-badge urgent">
+                        <span class="status-icon"></span>
+                        <span class="status-text">DUE {{ bill.days_until_due == 0 and "TODAY" or "TOMORROW" }}</span>
+                    </div>
+                    {% elif bill.days_until_due <= 3 %}
+                    <div class="status-badge warning">
+                        <span class="status-icon"></span>
+                        <span class="status-text">{{ bill.days_until_due }} DAYS</span>
+                    </div>
+                    {% else %}
+                    <div class="status-badge normal">
+                        <span class="status-icon"></span>
+                        <span class="status-text">{{ bill.days_until_due }} DAYS</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="bill-details">
+                <div class="amount-section">
+                    <div class="amount-display">
+                        <span class="currency">{{ bill.currency or currency }}</span>
+                        <span class="amount">{{ bill.amount }}</span>
+                    </div>
+                    {% if bill.late_fee and bill.days_until_due <= 3 %}
+                    <div class="late-fee-warning">
+                        <span class="warning-icon"></span>
+                        <span class="warning-text">Late fee: {{ bill.currency or currency }} {{ bill.late_fee }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="bill-info">
+                    <div class="info-item">
+                        <span class="label">Due Date:</span>
+                        <span class="value due-date {% if bill.is_overdue %}overdue{% elif bill.days_until_due <= 1 %}urgent{% endif %}">{{ bill.due_date }}</span>
+                    </div>
+                    {% if bill.billing_period %}
+                    <div class="info-item">
+                        <span class="label">Billing Period:</span>
+                        <span class="value">{{ bill.billing_period }}</span>
+                    </div>
+                    {% endif %}
+                    {% if bill.previous_balance %}
+                    <div class="info-item">
+                        <span class="label">Previous Balance:</span>
+                        <span class="value">{{ bill.currency or currency }} {{ bill.previous_balance }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="bill-actions">
+                    <a href="{{ bill.pay_url or pay_bill_url }}?bill_id={{ bill.id }}" class="pay-button {% if bill.is_overdue %}overdue{% elif bill.days_until_due <= 1 %}urgent{% elif bill.days_until_due <= 3 %}warning{% else %}normal{% endif %}">
+                        {% if bill.is_overdue %}
+                         Pay Overdue Bill
+                        {% elif bill.days_until_due <= 1 %}
+                        ⚡ Pay Now
+                        {% else %}
+                         Pay Bill
+                        {% endif %}
+                    </a>
+                    {% if bill.view_details_url %}
+                    <a href="{{ bill.view_details_url }}" class="details-button">📄 View Details</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="summary-section">
+        <h3> Payment Summary</h3>
+        <div class="summary-card">
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <div class="stat-number">{{ total_amount or "0.00" }}</div>
+                    <div class="stat-label">Total Due</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ bill_count or 0 }}</div>
+                    <div class="stat-label">Bill{% if bill_count != 1 %}s{% endif %}</div>
+                </div>
+                {% if overdue_count %}
+                <div class="stat-item overdue">
+                    <div class="stat-number">{{ overdue_count }}</div>
+                    <div class="stat-label">Overdue</div>
+                </div>
+                {% endif %}
+                {% if urgent_count %}
+                <div class="stat-item urgent">
+                    <div class="stat-number">{{ urgent_count }}</div>
+                    <div class="stat-label">Due Soon</div>
+                </div>
+                {% endif %}
+            </div>
+            
+            {% if potential_late_fees %}
+            <div class="late-fees-warning">
+                <div class="warning-header">
+                    <span class="warning-icon"></span>
+                    <span class="warning-title">Potential Late Fees</span>
+                </div>
+                <p>If bills are paid after due date, you may incur up to <strong>{{ currency }} {{ potential_late_fees }}</strong> in late fees.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="action-section">
+        <h3> Quick Actions</h3>
+        <div class="quick-actions">
+            <a href="{{ pay_all_url }}" class="primary-button large"> Pay All Bills</a>
+            <a href="{{ dashboard_url }}" class="secondary-button"> View Dashboard</a>
+            <a href="{{ schedule_payments_url }}" class="secondary-button">📅 Schedule Payments</a>
+        </div>
+    </div>
+
+    <div class="payment-methods">
+        <h3> Payment Options</h3>
+        <div class="methods-grid">
+            <div class="method-card">
+                <div class="method-icon">⚡</div>
+                <h4>Instant Payment</h4>
+                <p>Pay immediately with your saved payment method</p>
+                <div class="method-features">
+                    <span class="feature">✓ Instant confirmation</span>
+                    <span class="feature">✓ No processing delays</span>
+                </div>
+            </div>
+            
+            <div class="method-card">
+                <div class="method-icon"></div>
+                <h4>AutoPay Setup</h4>
+                <p>Never miss a payment with automatic billing</p>
+                <div class="method-features">
+                    <span class="feature">✓ Set and forget</span>
+                    <span class="feature">✓ Avoid late fees</span>
+                </div>
+                <a href="{{ autopay_setup_url }}" class="method-action">Set Up AutoPay</a>
+            </div>
+            
+            <div class="method-card">
+                <div class="method-icon"></div>
+                <h4>Schedule Payment</h4>
+                <p>Choose when your payment is processed</p>
+                <div class="method-features">
+                    <span class="feature">✓ Plan ahead</span>
+                    <span class="feature">✓ Control timing</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if reminder_preferences_url %}
+    <div class="preferences-section">
+        <h3> Reminder Preferences</h3>
+        <div class="preferences-card">
+            <div class="preferences-content">
+                <h4>Customize Your Reminders</h4>
+                <p>Choose how and when you want to receive bill payment reminders to stay on top of your finances.</p>
+                <div class="preference-options">
+                    <div class="option">
+                        <span class="option-icon"></span>
+                        <span class="option-text">Email notifications</span>
+                    </div>
+                    <div class="option">
+                        <span class="option-icon"></span>
+                        <span class="option-text">SMS alerts</span>
+                    </div>
+                    <div class="option">
+                        <span class="option-icon"></span>
+                        <span class="option-text">Push notifications</span>
+                    </div>
+                </div>
+            </div>
+            <div class="preferences-action">
+                <a href="{{ reminder_preferences_url }}" class="preferences-button">⚙️ Manage Preferences</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="tips-section">
+        <h3> Smart Payment Tips</h3>
+        <div class="tips-grid">
+            <div class="tip-card">
+                <div class="tip-icon"></div>
+                <h4>Set Up AutoPay</h4>
+                <p>Automatically pay your bills on time every month and never worry about late fees again.</p>
+            </div>
+            
+            <div class="tip-card">
+                <div class="tip-icon"></div>
+                <h4>Track Your Spending</h4>
+                <p>Monitor your monthly bill payments to better understand and manage your expenses.</p>
+            </div>
+            
+            <div class="tip-card">
+                <div class="tip-icon"></div>
+                <h4>Pay Early, Save More</h4>
+                <p>Some providers offer discounts for early payments. Check if you qualify for savings.</p>
+            </div>
+            
+            <div class="tip-card">
+                <div class="tip-icon"></div>
+                <h4>Stay Informed</h4>
+                <p>Enable notifications to get alerts about due dates, payment confirmations, and account updates.</p>
+            </div>
+        </div>
+    </div>
+
+    {% if payment_history_url %}
+    <div class="history-section">
+        <h3> Your Payment History</h3>
+        <div class="history-card">
+            <div class="history-stats">
+                <div class="history-stat">
+                    <div class="stat-value">{{ on_time_percentage or "95" }}%</div>
+                    <div class="stat-description">On-time payments</div>
+                </div>
+                <div class="history-stat">
+                    <div class="stat-value">{{ total_payments or "24" }}</div>
+                    <div class="stat-description">Total payments</div>
+                </div>
+                <div class="history-stat">
+                    <div class="stat-value">${{ total_paid or "2,450" }}</div>
+                    <div class="stat-description">Total paid</div>
+                </div>
+            </div>
+            <div class="history-action">
+                <a href="{{ payment_history_url }}" class="history-button">📊 View Full History</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="help-section">
+        <h3> Need Help?</h3>
+        <p>Our support team is here to assist you with any questions about your bills or payments.</p>
+        <div class="help-options">
+            <div class="help-option">
+                <div class="help-icon"></div>
+                <div class="help-content">
+                    <h4>Live Chat</h4>
+                    <p>Get instant help from our support team</p>
+                    <a href="{{ live_chat_url }}" class="help-button">Start Chat</a>
+                </div>
+            </div>
+            
+            <div class="help-option">
+                <div class="help-icon"></div>
+                <div class="help-content">
+                    <h4>Phone Support</h4>
+                    <p>Call us at {{ support_phone or "1-800-VISION" }}</p>
+                    <a href="tel:{{ support_phone }}" class="help-button">Call Now</a>
+                </div>
+            </div>
+            
+            <div class="help-option">
+                <div class="help-icon"></div>
+                <div class="help-content">
+                    <h4>Help Center</h4>
+                    <p>Find answers to common questions</p>
+                    <a href="{{ help_center_url }}" class="help-button">Browse FAQs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if unsubscribe_url %}
+    <div class="unsubscribe-section">
+        <p class="unsubscribe-text">Don't want to receive these reminders? <a href="{{ unsubscribe_url }}" class="unsubscribe-link">Manage your email preferences</a></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .reminder {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        border-color: #ff9800;
+    }
+    
+    .bills-section {
+        margin: 25px 0;
+    }
+    
+    .bill-card {
+        background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        border-radius: 15px;
+        overflow: hidden;
+        margin: 20px 0;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .bill-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .bill-card.normal {
+        border: 1px solid #28a745;
+    }
+    
+    .bill-card.warning {
+        border: 2px solid #ffc107;
+    }
+    
+    .bill-card.urgent {
+        border: 2px solid #fd7e14;
+        animation: urgentPulse 2s infinite;
+    }
+    
+    .bill-card.overdue {
+        border: 2px solid #dc3545;
+        animation: overduePulse 1.5s infinite;
+    }
+    
+    @keyframes urgentPulse {
+        0%, 100% { border-color: #fd7e14; }
+        50% { border-color: #ff6b35; }
+    }
+    
+    @keyframes overduePulse {
+        0%, 100% { border-color: #dc3545; }
+        50% { border-color: #ff1744; }
+    }
+    
+    .bill-header {
+        background: linear-gradient(135deg, #0066cc 0%, #004499 100%);
+        color: white;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .provider-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .provider-logo {
+        font-size: 24px;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 10px;
+        border-radius: 8px;
+        min-width: 44px;
+        text-align: center;
+    }
+    
+    .provider-details h4 {
+        margin: 0 0 5px 0;
+        font-size: 18px;
+    }
+    
+    .provider-details p {
+        margin: 0 0 3px 0;
+        opacity: 0.9;
+        font-size: 14px;
+    }
+    
+    .account-number {
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        opacity: 0.8;
+    }
+    
+    .bill-status {
+        text-align: right;
+    }
+    
+    .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 12px;
+    }
+    
+    .status-badge.normal {
+        background: rgba(40, 167, 69, 0.2);
+        color: #155724;
+    }
+    
+    .status-badge.warning {
+        background: rgba(255, 193, 7, 0.2);
+        color: #856404;
+    }
+    
+    .status-badge.urgent {
+        background: rgba(253, 126, 20, 0.2);
+        color: #8a4a00;
+    }
+    
+    .status-badge.overdue {
+        background: rgba(220, 53, 69, 0.2);
+        color: #721c24;
+        animation: badgePulse 2s infinite;
+    }
+    
+    @keyframes badgePulse {
+        0%, 100% { background: rgba(220, 53, 69, 0.2); }
+        50% { background: rgba(220, 53, 69, 0.4); }
+    }
+    
+    .bill-details {
+        padding: 25px;
+    }
+    
+    .amount-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .amount-display {
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+    }
+    
+    .currency {
+        font-size: 18px;
+        font-weight: 500;
+        color: #495057;
+    }
+    
+    .amount {
+        font-size: 28px;
+        font-weight: 700;
+        color: #212529;
+    }
+    
+    .late-fee-warning {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff3cd;
+        color: #856404;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    .bill-info {
+        margin: 20px 0;
+    }
+    
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .label {
+        color: #6c757d;
+        font-size: 14px;
+    }
+    
+    .value {
+        font-weight: 500;
+        color: #212529;
+    }
+    
+    .due-date.urgent {
+        color: #fd7e14;
+        font-weight: 700;
+    }
+    
+    .due-date.overdue {
+        color: #dc3545;
+        font-weight: 700;
+    }
+    
+    .bill-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .pay-button {
+        flex: 1;
+        text-align: center;
+        padding: 12px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        min-width: 140px;
+    }
+    
+    .pay-button.normal {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+    
+    .pay-button.warning {
+        background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%);
+        color: #212529;
+    }
+    
+    .pay-button.urgent {
+        background: linear-gradient(135deg, #fd7e14 0%, #ff8c42 100%);
+        color: white;
+        animation: buttonPulse 2s infinite;
+    }
+    
+    .pay-button.overdue {
+        background: linear-gradient(135deg, #dc3545 0%, #e55a6b 100%);
+        color: white;
+        animation: buttonPulse 1.5s infinite;
+    }
+    
+    @keyframes buttonPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .pay-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .details-button {
+        background: #f8f9fa;
+        color: #495057;
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-align: center;
+        min-width: 120px;
+    }
+    
+    .details-button:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+    }
+    
+    .summary-section {
+        margin: 30px 0;
+    }
+    
+    .summary-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px solid #dee2e6;
+        border-radius: 15px;
+        padding: 25px;
+    }
+    
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 15px;
+        background: white;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .stat-item.overdue {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        border-color: #dc3545;
+    }
+    
+    .stat-item.urgent {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        border-color: #fd7e14;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 5px;
+    }
+    
+    .stat-item.overdue .stat-number {
+        color: #721c24;
+    }
+    
+    .stat-item.urgent .stat-number {
+        color: #8a4a00;
+    }
+    
+    .stat-label {
+        font-size: 14px;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .late-fees-warning {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 1px solid #ffc107;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+    
+    .warning-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+    
+    .warning-title {
+        font-weight: 600;
+        color: #856404;
+    }
+    
+    .late-fees-warning p {
+        margin: 0;
+        color: #856404;
+        font-size: 14px;
+    }
+    
+    .quick-actions {
+        display: flex;
+        gap: 15px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+    
+    .primary-button.large {
+        flex: 2;
+        min-width: 200px;
+        font-size: 16px;
+        padding: 15px 25px;
+    }
+    
+    .methods-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    
+    .method-card {
+        background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+        border: 1px solid #c3e6cb;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    .method-icon {
+        font-size: 32px;
+        margin-bottom: 15px;
+        color: #28a745;
+    }
+    
+    .method-card h4 {
+        color: #155724;
+        margin: 0 0 10px 0;
+        font-size: 18px;
+    }
+    
+    .method-card p {
+        color: #495057;
+        font-size: 14px;
+        margin: 0 0 15px 0;
+    }
+    
+    .method-features {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin: 15px 0;
+    }
+    
+    .feature {
+        color: #155724;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    .method-action {
+        background: #28a745;
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-block;
+        margin-top: 10px;
+    }
+    
+    .method-action:hover {
+        background: #218838;
+        transform: translateY(-2px);
+    }
+    
+    .preferences-section {
+        margin: 30px 0;
+    }
+    
+    .preferences-card {
+        background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+        border: 1px solid #ce93d8;
+        border-radius: 15px;
+        padding: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .preferences-content h4 {
+        color: #4a148c;
+        margin: 0 0 10px 0;
+    }
+    
+    .preferences-content p {
+        color: #6a1b9a;
+        margin: 0 0 15px 0;
+        font-size: 14px;
+    }
+    
+    .preference-options {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #4a148c;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    .preferences-button {
+        background: #9c27b0;
+        color: white;
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+    
+    .preferences-button:hover {
+        background: #7b1fa2;
+        transform: translateY(-2px);
+    }
+    
+    .tips-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    
+    .tip-card {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border: 1px solid #90caf9;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    .tip-icon {
+        font-size: 32px;
+        color: #1976d2;
+        margin-bottom: 15px;
+    }
+    
+    .tip-card h4 {
+        color: #0d47a1;
+        margin: 0 0 10px 0;
+        font-size: 16px;
+    }
+    
+    .tip-card p {
+        color: #1565c0;
+        font-size: 14px;
+        margin: 0;
+    }
+    
+    .history-section {
+        margin: 30px 0;
+    }
+    
+    .history-card {
+        background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+        border: 1px solid #c3e6cb;
+        border-radius: 15px;
+        padding: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .history-stats {
+        display: flex;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+    
+    .history-stat {
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #155724;
+        margin-bottom: 5px;
+    }
+    
+    .stat-description {
+        font-size: 14px;
+        color: #495057;
+    }
+    
+    .history-button {
+        background: #28a745;
+        color: white;
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+    
+    .history-button:hover {
+        background: #218838;
+        transform: translateY(-2px);
+    }
+    
+    .help-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    
+    .help-option {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .help-icon {
+        font-size: 32px;
+        color: #007bff;
+    }
+    
+    .help-content h4 {
+        margin: 0 0 5px 0;
+        color: #212529;
+        font-size: 16px;
+    }
+    
+    .help-content p {
+        margin: 0 0 10px 0;
+        color: #6c757d;
+        font-size: 14px;
+    }
+    
+    .help-button {
+        background: #007bff;
+        color: white;
+        text-decoration: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .help-button:hover {
+        background: #0056b3;
+    }
+    
+    .unsubscribe-section {
+        margin: 30px 0;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    .unsubscribe-text {
+        margin: 0;
+        color: #6c757d;
+        font-size: 14px;
+    }
+    
+    .unsubscribe-link {
+        color: #007bff;
+        text-decoration: none;
+    }
+    
+    .unsubscribe-link:hover {
+        text-decoration: underline;
+    }
+    
+    @media (max-width: 600px) {
+        .bill-header {
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+        }
+        
+        .provider-section {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .amount-section {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .info-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        
+        .bill-actions {
+            flex-direction: column;
+        }
+        
+        .summary-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .quick-actions {
+            flex-direction: column;
+        }
+        
+        .methods-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .preferences-card {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .preference-options {
+            justify-content: center;
+        }
+        
+        .tips-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .history-card {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .history-stats {
+            justify-content: center;
+        }
+        
+        .help-options {
+            grid-template-columns: 1fr;
+        }
+        
+        .help-option {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}

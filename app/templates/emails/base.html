@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% block title %}Vision Fintech{% endblock %}</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f8fafc;
+        }
+        
+        /* Container */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e40af 0%, #059669 100%);
+            padding: 30px 40px;
+            text-align: center;
+        }
+        
+        .logo {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .tagline {
+            color: #e0f2fe;
+            font-size: 14px;
+            font-weight: 400;
+        }
+        
+        /* Main content */
+        .content {
+            padding: 40px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #4b5563;
+            margin-bottom: 30px;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #1e40af 0%, #059669 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        /* Info boxes */
+        .info-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .success-box {
+            background-color: #f0fdf4;
+            border-left-color: #22c55e;
+        }
+        
+        .warning-box {
+            background-color: #fffbeb;
+            border-left-color: #f59e0b;
+        }
+        
+        .error-box {
+            background-color: #fef2f2;
+            border-left-color: #ef4444;
+        }
+        
+        /* Transaction details */
+        .transaction-details {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .detail-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            color: #1f2937;
+            font-weight: 600;
+        }
+        
+        /* Footer */
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .footer-text {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-link {
+            display: inline-block;
+            margin: 0 8px;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .social-link:hover {
+            color: #1e40af;
+        }
+        
+        .unsubscribe {
+            color: #9ca3af;
+            font-size: 12px;
+            text-decoration: none;
+        }
+        
+        /* Responsive design */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+                margin: 0 !important;
+            }
+            
+            .header,
+            .content,
+            .footer {
+                padding: 20px !important;
+            }
+            
+            .logo {
+                font-size: 24px !important;
+            }
+            
+            .btn {
+                display: block !important;
+                width: 100% !important;
+                margin: 10px 0 !important;
+            }
+            
+            .detail-row {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 4px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">Vision Fintech</div>
+            <div class="tagline">Your Trusted Financial Partner</div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            {% block content %}
+            <!-- Template-specific content goes here -->
+            {% endblock %}
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-text">
+                This email was sent by Vision Fintech<br>
+                If you have any questions, please contact our support team.
+            </div>
+            
+            <div class="social-links">
+                <a href="#" class="social-link">Privacy Policy</a>
+                <a href="#" class="social-link">Terms of Service</a>
+                <a href="#" class="social-link">Contact Support</a>
+            </div>
+            
+            <div>
+                <a href="#" class="unsubscribe">Unsubscribe from these emails</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

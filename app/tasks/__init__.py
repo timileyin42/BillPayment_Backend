@@ -8,7 +8,9 @@ celery_app = Celery(
     backend=settings.redis_url,
     include=[
         "app.tasks.recurring_payments",
-        "app.tasks.reconciliation"
+        "app.tasks.reconciliation",
+        "app.tasks.cashback_tasks",
+        "app.tasks.report_tasks"
     ]
 )
 
@@ -44,5 +46,25 @@ celery_app.conf.beat_schedule = {
     "cleanup-expired-idempotency-keys": {
         "task": "app.tasks.reconciliation.cleanup_expired_idempotency_keys",
         "schedule": 3600.0 * 24,  # Every 24 hours
+    },
+    "expire-cashback": {
+        "task": "app.tasks.cashback_tasks.expire_cashback",
+        "schedule": 3600.0 * 24,  # Every 24 hours
+    },
+    "send-cashback-expiry-notifications": {
+        "task": "app.tasks.cashback_tasks.send_cashback_expiry_notifications",
+        "schedule": 3600.0 * 24,  # Every 24 hours
+    },
+    "expire-referral-rewards": {
+        "task": "app.tasks.cashback_tasks.expire_referral_rewards",
+        "schedule": 3600.0 * 24,  # Every 24 hours
+    },
+    "generate-daily-transaction-report": {
+        "task": "app.tasks.report_tasks.generate_daily_transaction_report",
+        "schedule": 3600.0 * 24,  # Every 24 hours at midnight
+    },
+    "generate-monthly-analytics": {
+        "task": "app.tasks.report_tasks.generate_monthly_analytics",
+        "schedule": 3600.0 * 24 * 30,  # Every 30 days
     },
 }

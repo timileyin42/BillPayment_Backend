@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to Vision Fintech - Verify Your Email{% endblock %}
+
+{% block content %}
+<div class="greeting">
+    Hello {{ user_name or 'Valued Customer' }}! 
+</div>
+
+<div class="message">
+    Welcome to <strong>Vision Fintech</strong>! We're excited to have you join our community of smart financial management.
+</div>
+
+<div class="info-box">
+    <h3 style="color: #0ea5e9; margin-bottom: 12px; font-size: 18px;">🎉 Account Created Successfully</h3>
+    <p style="margin: 0; color: #374151;">Your Vision Fintech account has been created with the email address: <strong>{{ user_email }}</strong></p>
+</div>
+
+<div class="message">
+    To get started and secure your account, please verify your email address by clicking the button below. This verification helps us ensure the security of your financial data.
+</div>
+
+<!-- Verification Button -->
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ verification_url }}" class="btn" style="color: #ffffff; text-decoration: none;">
+         Verify Email Address
+    </a>
+</div>
+
+<div class="message" style="font-size: 14px; color: #6b7280;">
+    <strong>Note:</strong> This verification link will expire in {{ expiry_hours or '24' }} hours for security purposes.
+</div>
+
+<!-- What's Next Section -->
+<div style="background-color: #f8fafc; border-radius: 8px; padding: 24px; margin: 30px 0; border: 1px solid #e2e8f0;">
+    <h3 style="color: #1e40af; margin-bottom: 16px; font-size: 18px;"> What's Next?</h3>
+    <div style="display: grid; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="background: #dbeafe; color: #1e40af; padding: 6px; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">1</span>
+            <span style="color: #374151;">Verify your email address (you're here!)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="background: #dbeafe; color: #1e40af; padding: 6px; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">2</span>
+            <span style="color: #374151;">Complete your profile setup</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="background: #dbeafe; color: #1e40af; padding: 6px; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">3</span>
+            <span style="color: #374151;">Connect your bank accounts securely</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="background: #dbeafe; color: #1e40af; padding: 6px; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">4</span>
+            <span style="color: #374151;">Start managing your bills and payments</span>
+        </div>
+    </div>
+</div>
+
+<!-- Features Highlight -->
+<div style="background: linear-gradient(135deg, #f0f9ff 0%, #ecfdf5 100%); border-radius: 8px; padding: 24px; margin: 30px 0;">
+    <h3 style="color: #1e40af; margin-bottom: 16px; font-size: 18px; text-align: center;">💡 Why Choose Vision Fintech?</h3>
+    <div style="display: grid; gap: 16px;">
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <span style="color: #059669; font-size: 18px;"></span>
+            <div>
+                <strong style="color: #1f2937;">Bank-Level Security</strong><br>
+                <span style="color: #6b7280; font-size: 14px;">Your financial data is protected with 256-bit encryption</span>
+            </div>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <span style="color: #059669; font-size: 18px;">⚡</span>
+            <div>
+                <strong style="color: #1f2937;">Instant Payments</strong><br>
+                <span style="color: #6b7280; font-size: 14px;">Pay bills and transfer money in real-time</span>
+            </div>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <span style="color: #059669; font-size: 18px;"></span>
+            <div>
+                <strong style="color: #1f2937;">Smart Analytics</strong><br>
+                <span style="color: #6b7280; font-size: 14px;">Track spending patterns and optimize your finances</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alternative Verification -->
+<div style="background-color: #fffbeb; border: 1px solid #fbbf24; border-radius: 8px; padding: 20px; margin: 30px 0;">
+    <h4 style="color: #92400e; margin-bottom: 12px; font-size: 16px;">⚠️ Having Trouble?</h4>
+    <p style="color: #78350f; margin-bottom: 12px; font-size: 14px;">
+        If the button above doesn't work, copy and paste this link into your browser:
+    </p>
+    <div style="background-color: #ffffff; padding: 12px; border-radius: 4px; border: 1px solid #fbbf24; word-break: break-all; font-family: monospace; font-size: 12px; color: #374151;">
+        {{ verification_url }}
+    </div>
+</div>
+
+<div class="message" style="font-size: 14px; color: #6b7280; text-align: center; margin-top: 30px;">
+    If you didn't create this account, please ignore this email or <a href="mailto:support@visionfintech.com" style="color: #1e40af;">contact our support team</a>.
+</div>
+{% endblock %}

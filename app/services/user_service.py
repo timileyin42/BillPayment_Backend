@@ -20,6 +20,7 @@ from ..core.errors import (
 )
 from .wallet_service import WalletService
 from .notification import NotificationService
+from ..services.cashback_service import CashbackService
 
 class UserService:
     """Service for managing user operations."""
@@ -404,7 +405,6 @@ class UserService:
     
     async def _process_referral_reward(self, referrer_id: int, referred_id: int):
         """Process referral reward for successful referral."""
-        from ..services.cashback_service import CashbackService
         
         cashback_service = CashbackService(self.db)
         

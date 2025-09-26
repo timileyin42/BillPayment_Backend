@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+
+{% block title %}Security Alert - Vision Fintech{% endblock %}
+
+{% block content %}
+<div class="greeting">
+    <h2> Security Alert</h2>
+    <p>Hello {{ user_name }},</p>
+</div>
+
+<div class="main-content">
+    <div class="info-box alert">
+        <div class="icon"></div>
+        <div class="content">
+            <h3>{{ alert_type }} Detected</h3>
+            <p>We've detected {{ alert_description }} on your Vision Fintech account. Please review the details below and take immediate action if necessary.</p>
+        </div>
+    </div>
+
+    <div class="alert-details">
+        <h3> Alert Details</h3>
+        <div class="details-grid">
+            <div class="detail-row">
+                <span class="label">Alert Type:</span>
+                <span class="value alert-type">{{ alert_type }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Date & Time:</span>
+                <span class="value">{{ alert_timestamp }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Account:</span>
+                <span class="value">{{ user_email }}</span>
+            </div>
+            {% if ip_address %}
+            <div class="detail-row">
+                <span class="label">IP Address:</span>
+                <span class="value ip-address">{{ ip_address }}</span>
+            </div>
+            {% endif %}
+            {% if location %}
+            <div class="detail-row">
+                <span class="label">Location:</span>
+                <span class="value">{{ location }}</span>
+            </div>
+            {% endif %}
+            {% if device_info %}
+            <div class="detail-row">
+                <span class="label">Device:</span>
+                <span class="value">{{ device_info }}</span>
+            </div>
+            {% endif %}
+            <div class="detail-row">
+                <span class="label">Status:</span>
+                <span class="value status-{{ status.lower() }}">{{ status }}</span>
+            </div>
+        </div>
+    </div>
+
+    {% if alert_type == "Suspicious Login" %}
+    <div class="action-section urgent">
+        <h3> Immediate Action Required</h3>
+        <p><strong>Was this you?</strong> If you recognize this activity, you can dismiss this alert. If not, secure your account immediately.</p>
+        
+        <div class="action-buttons">
+            <a href="{{ confirm_url }}" class="success-button"> This Was Me</a>
+            <a href="{{ secure_account_url }}" class="danger-button"> Secure My Account</a>
+        </div>
+    </div>
+    {% elif alert_type == "Password Change" %}
+    <div class="action-section">
+        <h3> Password Changed</h3>
+        <p>Your account password was recently changed. If you didn't make this change, please contact support immediately.</p>
+        
+        <div class="action-buttons">
+            <a href="{{ account_settings_url }}" class="primary-button">Review Account Settings</a>
+            <a href="mailto:{{ support_email }}" class="secondary-button">Contact Support</a>
+        </div>
+    </div>
+    {% elif alert_type == "Failed Login Attempts" %}
+    <div class="action-section">
+        <h3> Multiple Failed Login Attempts</h3>
+        <p>We've detected multiple failed login attempts on your account. Your account remains secure, but we recommend reviewing your security settings.</p>
+        
+        <div class="action-buttons">
+            <a href="{{ security_settings_url }}" class="primary-button">Review Security Settings</a>
+            <a href="{{ change_password_url }}" class="secondary-button">Change Password</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="action-section">
+        <h3> Review Required</h3>
+        <p>Please review this security alert and take appropriate action to ensure your account remains secure.</p>
+        
+        <div class="action-buttons">
+            <a href="{{ dashboard_url }}" class="primary-button">View Dashboard</a>
+            <a href="{{ security_settings_url }}" class="secondary-button">Security Settings</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="security-recommendations">
+        <h3> Security Recommendations</h3>
+        <div class="recommendations-grid">
+            <div class="recommendation">
+                <div class="rec-icon"></div>
+                <div class="rec-content">
+                    <h4>Enable Two-Factor Authentication</h4>
+                    <p>Add an extra layer of security to your account</p>
+                    <a href="{{ two_factor_url }}" class="rec-link">Enable 2FA</a>
+                </div>
+            </div>
+            <div class="recommendation">
+                <div class="rec-icon"></div>
+                <div class="rec-content">
+                    <h4>Use Strong Passwords</h4>
+                    <p>Create unique, complex passwords for better security</p>
+                    <a href="{{ password_tips_url }}" class="rec-link">Password Tips</a>
+                </div>
+            </div>
+            <div class="recommendation">
+                <div class="rec-icon">📱</div>
+                <div class="rec-content">
+                    <h4>Monitor Account Activity</h4>
+                    <p>Regularly check your account for suspicious activity</p>
+                    <a href="{{ activity_log_url }}" class="rec-link">View Activity</a>
+                </div>
+            </div>
+            <div class="recommendation">
+                <div class="rec-icon"></div>
+                <div class="rec-content">
+                    <h4>Keep Information Updated</h4>
+                    <p>Ensure your contact details are current</p>
+                    <a href="{{ profile_url }}" class="rec-link">Update Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="what-to-do">
+        <h3> What Should I Do?</h3>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>Review the Alert</h4>
+                    <p>Check if you recognize the activity described above</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>Take Action</h4>
+                    <p>Use the buttons above to confirm or secure your account</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>Stay Vigilant</h4>
+                    <p>Monitor your account regularly for any unusual activity</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="emergency-contact">
+        <div class="emergency-box">
+            <h3> Emergency Contact</h3>
+            <p>If you believe your account has been compromised or you need immediate assistance:</p>
+            <div class="emergency-buttons">
+                <a href="tel:{{ emergency_phone }}" class="emergency-button">📞 Call {{ emergency_phone }}</a>
+                <a href="mailto:{{ security_email }}" class="emergency-button">📧 Email Security Team</a>
+            </div>
+            <p class="emergency-note">Available 24/7 for security emergencies</p>
+        </div>
+    </div>
+
+    <div class="important-notice">
+        <p><strong> Important:</strong> Vision Fintech will never ask for your password, PIN, or sensitive information via email. If you receive suspicious emails claiming to be from us, please report them immediately.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .alert {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        border-color: #dc3545;
+    }
+    
+    .alert-details {
+        background: #fff5f5;
+        border: 1px solid #fed7d7;
+        border-radius: 12px;
+        padding: 25px;
+        margin: 25px 0;
+    }
+    
+    .details-grid {
+        display: grid;
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #fed7d7;
+    }
+    
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    
+    .label {
+        font-weight: 600;
+        color: #495057;
+        flex: 1;
+    }
+    
+    .value {
+        font-weight: 500;
+        color: #212529;
+        text-align: right;
+        flex: 1;
+    }
+    
+    .alert-type {
+        color: #dc3545;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    
+    .ip-address {
+        font-family: 'Courier New', monospace;
+        background: #f8f9fa;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .status-active {
+        color: #dc3545;
+        font-weight: 600;
+    }
+    
+    .status-resolved {
+        color: #28a745;
+        font-weight: 600;
+    }
+    
+    .action-section {
+        margin: 25px 0;
+        padding: 25px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px solid #dee2e6;
+    }
+    
+    .urgent {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border-color: #ffc107;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+    
+    .success-button {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        text-decoration: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        flex: 1;
+        text-align: center;
+        min-width: 150px;
+    }
+    
+    .danger-button {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        text-decoration: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        flex: 1;
+        text-align: center;
+        min-width: 150px;
+    }
+    
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    
+    .recommendation {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border: 1px solid #90caf9;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .rec-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+    
+    .rec-content h4 {
+        margin: 0 0 8px 0;
+        color: #1565c0;
+        font-size: 16px;
+    }
+    
+    .rec-content p {
+        margin: 0 0 10px 0;
+        color: #424242;
+        font-size: 14px;
+    }
+    
+    .rec-link {
+        color: #1565c0;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .rec-link:hover {
+        text-decoration: underline;
+    }
+    
+    .emergency-contact {
+        margin: 30px 0;
+    }
+    
+    .emergency-box {
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        border: 2px solid #f44336;
+        border-radius: 12px;
+        padding: 25px;
+        text-align: center;
+    }
+    
+    .emergency-box h3 {
+        color: #c62828;
+        margin-bottom: 15px;
+    }
+    
+    .emergency-buttons {
+        display: flex;
+        gap: 15px;
+        margin: 20px 0;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .emergency-button {
+        background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        color: white;
+        text-decoration: none;
+        padding: 15px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        min-width: 180px;
+    }
+    
+    .emergency-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+    }
+    
+    .emergency-note {
+        font-size: 14px;
+        color: #666;
+        margin-top: 10px;
+        font-style: italic;
+    }
+    
+    .important-notice {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 25px 0;
+        text-align: center;
+    }
+    
+    .important-notice p {
+        margin: 0;
+        color: #856404;
+    }
+    
+    @media (max-width: 600px) {
+        .detail-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        
+        .value {
+            text-align: left;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .success-button,
+        .danger-button {
+            min-width: auto;
+        }
+        
+        .recommendations-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .recommendation {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .emergency-buttons {
+            flex-direction: column;
+        }
+        
+        .emergency-button {
+            min-width: auto;
+        }
+    }
+</style>
+{% endblock %}

@@ -3,6 +3,8 @@ from .abstract_biller import AbstractBiller
 from .electricity import ElectricityBiller
 from .internet import InternetBiller
 from ..core.errors import ValidationError
+from .abstract_biller import PaymentResponse
+from .abstract_biller import CustomerInfo
 
 class AirtimeBiller(AbstractBiller):
     """Simple airtime biller implementation for MTN, Airtel, Glo, 9mobile."""
@@ -12,7 +14,6 @@ class AirtimeBiller(AbstractBiller):
         if not account_number.isdigit() or len(account_number) != 11:
             raise ValidationError("Invalid phone number format")
         
-        from .abstract_biller import CustomerInfo
         return CustomerInfo(
             account_number=account_number,
             customer_name="Airtime Customer",
@@ -21,7 +22,6 @@ class AirtimeBiller(AbstractBiller):
     
     async def process_payment(self, payment_request):
         # Simulate airtime purchase
-        from .abstract_biller import PaymentResponse
         return PaymentResponse(
             success=True,
             transaction_reference=payment_request.reference,

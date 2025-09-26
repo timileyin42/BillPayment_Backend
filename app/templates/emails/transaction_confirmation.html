@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}Transaction Confirmation - Vision Fintech{% endblock %}
+
+{% block content %}
+<div class="greeting">
+    <h2>Transaction Confirmed</h2>
+    <p>Hello {{ user_name }},</p>
+</div>
+
+<div class="main-content">
+    <div class="info-box success">
+        <div class="icon"></div>
+        <div class="content">
+            <h3>Payment Processed Successfully</h3>
+            <p>Your transaction has been completed and processed securely through Vision Fintech.</p>
+        </div>
+    </div>
+
+    <div class="transaction-details">
+        <h3> Transaction Details</h3>
+        <div class="details-grid">
+            <div class="detail-row">
+                <span class="label">Transaction ID:</span>
+                <span class="value transaction-id">{{ transaction_id }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Date & Time:</span>
+                <span class="value">{{ transaction_date }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Amount:</span>
+                <span class="value amount">{{ currency }} {{ amount }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Payment Method:</span>
+                <span class="value">{{ payment_method }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Status:</span>
+                <span class="value status-success">{{ status }}</span>
+            </div>
+            {% if reference_number %}
+            <div class="detail-row">
+                <span class="label">Reference:</span>
+                <span class="value">{{ reference_number }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if bill_details %}
+    <div class="bill-information">
+        <h3> Bill Information</h3>
+        <div class="bill-card">
+            <div class="bill-header">
+                <div class="provider-info">
+                    <strong>{{ bill_details.provider_name }}</strong>
+                    <span class="bill-type">{{ bill_details.bill_type }}</span>
+                </div>
+                <div class="bill-amount">
+                    {{ currency }} {{ bill_details.amount }}
+                </div>
+            </div>
+            <div class="bill-details">
+                {% if bill_details.account_number %}
+                <p><strong>Account:</strong> {{ bill_details.account_number }}</p>
+                {% endif %}
+                {% if bill_details.due_date %}
+                <p><strong>Due Date:</strong> {{ bill_details.due_date }}</p>
+                {% endif %}
+                {% if bill_details.billing_period %}
+                <p><strong>Period:</strong> {{ bill_details.billing_period }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="action-section">
+        <div class="button-container">
+            <a href="{{ receipt_url }}" class="primary-button">Download Receipt</a>
+            <a href="{{ dashboard_url }}" class="secondary-button">View Dashboard</a>
+        </div>
+    </div>
+
+    <div class="next-steps">
+        <h3>What's Next?</h3>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>Receipt Available</h4>
+                    <p>Download your transaction receipt for your records</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>Payment Confirmation</h4>
+                    <p>Your payment will be processed within 1-2 business days</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>Account Updated</h4>
+                    <p>Your account balance and payment history have been updated</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="security-info">
+        <h3> Security & Privacy</h3>
+        <div class="security-grid">
+            <div class="security-item">
+                <strong>Encrypted</strong>
+                <p>All transactions use 256-bit SSL encryption</p>
+            </div>
+            <div class="security-item">
+                <strong>Verified</strong>
+                <p>Payment verified through secure banking networks</p>
+            </div>
+            <div class="security-item">
+                <strong>Protected</strong>
+                <p>Your financial data is never stored or shared</p>
+            </div>
+            <div class="security-item">
+                <strong>Monitored</strong>
+                <p>24/7 fraud monitoring and protection</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="help-section">
+        <p><strong>Questions about this transaction?</strong> Our support team is here to help you with any concerns or inquiries.</p>
+        <div class="contact-options">
+            <a href="mailto:{{ support_email }}" class="contact-button">📧 Email Support</a>
+            <a href="tel:{{ support_phone }}" class="contact-button">📞 Call Support</a>
+            <a href="{{ help_center_url }}" class="contact-button">❓ Help Center</a>
+        </div>
+    </div>
+
+    <div class="important-notice">
+        <p><strong> Important:</strong> Keep this confirmation email for your records. If you notice any unauthorized transactions, contact us immediately.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .success {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border-color: #28a745;
+    }
+    
+    .transaction-details {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 25px;
+        margin: 25px 0;
+        border: 1px solid #e9ecef;
+    }
+    
+    .details-grid {
+        display: grid;
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    
+    .label {
+        font-weight: 600;
+        color: #495057;
+        flex: 1;
+    }
+    
+    .value {
+        font-weight: 500;
+        color: #212529;
+        text-align: right;
+        flex: 1;
+    }
+    
+    .transaction-id {
+        font-family: 'Courier New', monospace;
+        background: #e9ecef;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .amount {
+        font-size: 18px;
+        font-weight: 700;
+        color: #28a745;
+    }
+    
+    .status-success {
+        color: #28a745;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 14px;
+    }
+    
+    .bill-information {
+        margin: 25px 0;
+    }
+    
+    .bill-card {
+        background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-top: 15px;
+    }
+    
+    .bill-header {
+        background: linear-gradient(135deg, #0066cc 0%, #004499 100%);
+        color: white;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .provider-info strong {
+        display: block;
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+    
+    .bill-type {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+    
+    .bill-amount {
+        font-size: 24px;
+        font-weight: 700;
+    }
+    
+    .bill-details {
+        padding: 20px;
+    }
+    
+    .bill-details p {
+        margin: 8px 0;
+        color: #495057;
+    }
+    
+    .security-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin: 15px 0;
+    }
+    
+    .security-item {
+        background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .security-item strong {
+        display: block;
+        color: #155724;
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+    
+    .security-item p {
+        margin: 0;
+        font-size: 12px;
+        color: #495057;
+    }
+    
+    .contact-options {
+        display: flex;
+        gap: 15px;
+        margin: 15px 0;
+        flex-wrap: wrap;
+    }
+    
+    .contact-button {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        color: #495057;
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        flex: 1;
+        text-align: center;
+        min-width: 140px;
+    }
+    
+    .contact-button:hover {
+        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+        transform: translateY(-2px);
+    }
+    
+    .important-notice {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 25px 0;
+        text-align: center;
+    }
+    
+    .important-notice p {
+        margin: 0;
+        color: #856404;
+    }
+    
+    @media (max-width: 600px) {
+        .detail-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        
+        .value {
+            text-align: left;
+        }
+        
+        .bill-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .security-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .contact-options {
+            flex-direction: column;
+        }
+        
+        .contact-button {
+            min-width: auto;
+        }
+    }
+</style>
+{% endblock %}
