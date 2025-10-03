@@ -9,10 +9,15 @@ from ..database_model.transaction import RecurringPayment
 from ..database_model.user import User
 from ..database_model.biller import Biller
 from ..core.database import AsyncSessionLocal
+from ..database_model.transaction import Transaction
+from ..database_model.cashback import Cashback
 from ..core.errors import PaymentFailedError, InsufficientFundsError
 from .payment_service import PaymentService
 from .wallet_service import WalletService
 from .notification import NotificationService
+from ..database_model.transaction import Transaction
+from ..database_model.archived_transaction import ArchivedTransaction
+from sqlalchemy.orm import selectinload
 
 class SchedulerService:
     """Service for handling scheduled and recurring tasks."""
@@ -214,15 +219,17 @@ class SchedulerService:
                 f"RECURRING_FAIL_{recurring_payment.id}"
             )
     
-    async def cleanup_expired_transactions(self, days_old: int = 30) -> Dict[str, Any]:
-        """Clean up old failed/expired transactions."""
+    async def cleanup_expired_transactions(self, days_old: int = 30, archive_only: bool = True) -> Dict[str, Any]:
+        """Archive old failed/expired transactions instead of deleting them."""
         async with AsyncSessionLocal() as db:
             cutoff_date = datetime.utcnow() - timedelta(days=days_old)
             
-            # Get expired transactions
-            from ..database_model.transaction import Transaction
+            # Get expired transactions with related data for archiving
+            
             result = await db.execute(
-                select(Transaction).where(
+                select(Transaction)
+                .options(selectinload(Transaction.user), selectinload(Transaction.biller))
+                .where(
                     and_(
                         Transaction.status.in_(["failed", "expired"]),
                         Transaction.created_at < cutoff_date
@@ -232,19 +239,46 @@ class SchedulerService:
             
             expired_transactions = result.scalars().all()
             
-            # Archive or delete expired transactions
+            archived_count = 0
             deleted_count = 0
+            failed_count = 0
+            
             for transaction in expired_transactions:
-                # In a real implementation, you might want to archive instead of delete
-                await db.delete(transaction)
-                deleted_count += 1
+                try:
+                    if archive_only:
+                        # Create archived transaction
+                        archived_transaction = ArchivedTransaction.from_transaction(
+                            transaction, 
+                            archived_reason="cleanup",
+                            retention_days=2555  # ~7 years retention
+                        )
+                        
+                        # Add to database
+                        db.add(archived_transaction)
+                        
+                        # Delete original transaction
+                        await db.delete(transaction)
+                        archived_count += 1
+                    else:
+                        # Direct deletion (legacy behavior)
+                        await db.delete(transaction)
+                        deleted_count += 1
+                        
+                except Exception as e:
+                    # Log the error but continue with other transactions
+                    print(f"Failed to archive transaction {transaction.id}: {str(e)}")
+                    failed_count += 1
+                    continue
             
             await db.commit()
             
             return {
+                "archived_transactions": archived_count,
                 "deleted_transactions": deleted_count,
+                "failed_transactions": failed_count,
                 "cutoff_date": cutoff_date.isoformat(),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
+                "archive_mode": archive_only
             }
     
     async def update_biller_status(self) -> Dict[str, Any]:
@@ -331,8 +365,6 @@ class SchedulerService:
     async def send_daily_summary_notifications(self) -> Dict[str, Any]:
         """Send daily summary notifications to users."""
         async with AsyncSessionLocal() as db:
-            from ..database_model.transaction import Transaction
-            from ..database_model.cashback import Cashback
             
             # Get users who had transactions today
             today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)

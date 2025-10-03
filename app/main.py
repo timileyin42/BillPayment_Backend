@@ -13,6 +13,7 @@ from app.core.exceptions import VisionException
 from app.core.database import engine
 from app.core.database import init_db, get_redis
 from app.api.v1 import auth, users, bills, payments, wallet, admin, webhooks
+from app.api import archive
 from app.middleware import (
     SecurityHeadersMiddleware,
     RateLimitingMiddleware,
@@ -296,6 +297,7 @@ app.include_router(payments.router, prefix="/api/v1")
 app.include_router(billers.router, prefix="/api/v1")
 app.include_router(cashback.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
+app.include_router(archive.router, prefix="/api/v1")
 
 # Health check endpoints
 @app.get("/health")
